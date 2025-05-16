@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teste Supabase - Cadastro</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      padding: 30px;
+    }
+    h2 {
+      color: #333;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    #lista {
+      margin-top: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h2>Cadastro de Usuário com Supabase</h2>
+
+  <input type="text" id="nome" placeholder="Nome" />
+  <input type="email" id="email" placeholder="Email" />
+  <button onclick="cadastrar()">Cadastrar</button>
+  <button onclick="carregarUsuarios()">Atualizar Lista</button>
+
+  <div id="lista"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://jtsaijgncdiausfgytzi.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0c2FpamduY2RpYXVzZmd5dHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTg2MDksImV4cCI6MjA2Mjk5NDYwOX0.2m3aNg7UUQCOOCXwNMGcyLtrzuN4Vp63mAEs2_1M3VM';
+
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function cadastrar() {
+      const nome = document.getElementById('nome').value;
+      const email = document.getElementById('email').value;
+
+      if (!nome || !email) {
+        alert('Preencha todos os campos');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('supabaseteste')
+        .insert([{ nome, email }]);
+
+      if (error) {
+        alert('Erro: ' + error.message);
+      } else {
+        alert('Usuário cadastrado!');
+        document.getElementById('nome').value = '';
+        document.getElementById('email').value = '';
+        carregarUsuarios();
+      }
+    }
+
+    async function carregarUsuarios() {
+      const { data, error } = await supabase
+        .from('supabaseteste')
+        .select('*')
+        .order('criado_em', { ascending: false });
+
+      const lista = document.getElementById('lista');
+      lista.innerHTML = '<h3>Lista de Usuários:</h3>';
+
+      if (error) {
+        lista.innerHTML += '<p>Erro ao carregar: ' + error.message + '</p>';
+        return;
+      }
+
+      if (data.length === 0) {
+        lista.innerHTML += '<p>Nenhum usuário cadastrado.</p>';
+        return;
+      }
+
+      data.forEach(user => {
+        lista.innerHTML += `<p><strong>${user.nome}</strong> - ${user.email}</p>`;
+      });
+    }
+
+    // Carrega ao abrir a página
+    carregarUsuarios();
+  </script>
+</body>
+</html>

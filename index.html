@@ -3,82 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <title>Teste Supabase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
-  <h1>Cadastro de Usuários</h1>
+  <h1>Cadastro no Supabase</h1>
 
-  <label for="nome">Nome:</label>
-  <input type="text" id="nome" placeholder="Digite seu nome"><br><br>
+  <input type="text" id="nome" placeholder="Nome" />
+  <input type="email" id="email" placeholder="Email" />
+  <button onclick="cadastrar()">Cadastrar</button>
+  <button onclick="carregarUsuarios()">Ver Usuários</button>
 
-  <label for="email">Email:</label>
-  <input type="email" id="email" placeholder="Digite seu email"><br><br>
+  <ul id="lista"></ul>
 
-  <button id="btnCadastrar">Cadastrar</button>
-  <button id="btnListar">Atualizar Lista</button>
+  <script>
+    const SUPABASE_URL = "https://idvbwnzcxmbujvfiuaji.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdmJ3bnpjeG1idWp2Zml1YWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MjQ3NTYsImV4cCI6MjA2MzAwMDc1Nn0.iNF6zPgB2ob9s7AHTMy-4OAymr65lo0_qficwoS8SrI";
 
-  <h2>Usuários cadastrados:</h2>
-  <ul id="listaUsuarios"></ul>
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    async function cadastrar() {
+      const nome = document.getElementById("nome").value;
+      const email = document.getElementById("email").value;
 
-    const supabaseUrl = 'https://jtsaijgncdiausfgytzi.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0c2FpamduY2RpYXVzZmd5dHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTg2MDksImV4cCI6MjA2Mjk5NDYwOX0.2m3aNg7UUQCOOCXwNMGcyLtrzuN4Vp63mAEs2_1M3VM';
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Função para cadastrar
-    async function cadastrarUsuario() {
-      const nome = document.getElementById('nome').value.trim();
-      const email = document.getElementById('email').value.trim();
-
-      if (!nome || !email) {
-        alert('Preencha todos os campos!');
-        return;
-      }
-
-      const { error } = await supabase
-        .from('supabaseteste')
+      const { data, error } = await supabase
+        .from("supabaseteste")
         .insert([{ nome, email }]);
 
       if (error) {
-        console.error('Erro ao cadastrar:', error);
-        alert('Erro: ' + error.message);
+        console.error("Erro ao cadastrar:", error);
+        alert("Erro ao cadastrar. Verifique o console.");
       } else {
-        alert('Cadastrado com sucesso!');
-        document.getElementById('nome').value = '';
-        document.getElementById('email').value = '';
-        listarUsuarios();
+        alert("Cadastro realizado com sucesso!");
+        document.getElementById("nome").value = "";
+        document.getElementById("email").value = "";
+        carregarUsuarios();
       }
     }
 
-    // Função para listar
-    async function listarUsuarios() {
-      const lista = document.getElementById('listaUsuarios');
-      lista.innerHTML = 'Carregando...';
+    async function carregarUsuarios() {
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "";
 
       const { data, error } = await supabase
-        .from('supabaseteste')
-        .select('*');
+        .from("supabaseteste")
+        .select("*")
+        .order("id", { ascending: false });
 
       if (error) {
-        console.error('Erro ao listar:', error);
-        lista.innerHTML = 'Erro ao carregar lista.';
+        console.error("Erro ao carregar usuários:", error);
+        alert("Erro ao carregar. Verifique o console.");
         return;
       }
 
-      lista.innerHTML = '';
-      data.forEach(user => {
-        const li = document.createElement('li');
-        li.textContent = `${user.nome} - ${user.email}`;
-        lista.appendChild(li);
+      data.forEach(usuario => {
+        const item = document.createElement("li");
+        item.textContent = `${usuario.nome} - ${usuario.email}`;
+        lista.appendChild(item);
       });
     }
-
-    // Espera carregar o DOM
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('btnCadastrar').addEventListener('click', cadastrarUsuario);
-      document.getElementById('btnListar').addEventListener('click', listarUsuarios);
-    });
   </script>
 </body>
 </html>

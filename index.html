@@ -13,8 +13,8 @@
   <label for="email">Email:</label>
   <input type="email" id="email" placeholder="Digite seu email"><br><br>
 
-  <button onclick="cadastrarUsuario()">Cadastrar</button>
-  <button onclick="listarUsuarios()">Atualizar Lista</button>
+  <button id="btnCadastrar">Cadastrar</button>
+  <button id="btnListar">Atualizar Lista</button>
 
   <h2>Usuários cadastrados:</h2>
   <ul id="listaUsuarios"></ul>
@@ -22,53 +22,63 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // 🔁 Substitua com a URL e API KEY reais do seu projeto:
     const supabaseUrl = 'https://jtsaijgncdiausfgytzi.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0c2FpamduY2RpYXVzZmd5dHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MTg2MDksImV4cCI6MjA2Mjk5NDYwOX0.2m3aNg7UUQCOOCXwNMGcyLtrzuN4Vp63mAEs2_1M3VM';
-
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // ⬇️ Função para cadastrar usuário
-    window.cadastrarUsuario = async () => {
-      const nome = document.getElementById('nome').value;
-      const email = document.getElementById('email').value;
+    // Função para cadastrar
+    async function cadastrarUsuario() {
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
 
       if (!nome || !email) {
         alert('Preencha todos os campos!');
         return;
       }
 
-      const { error } = await supabase.from('supabaseteste').insert([{ nome, email }]);
+      const { error } = await supabase
+        .from('supabaseteste')
+        .insert([{ nome, email }]);
 
       if (error) {
         console.error('Erro ao cadastrar:', error);
-        alert('Erro ao cadastrar: ' + error.message);
+        alert('Erro: ' + error.message);
       } else {
-        alert('Usuário cadastrado com sucesso!');
+        alert('Cadastrado com sucesso!');
         document.getElementById('nome').value = '';
         document.getElementById('email').value = '';
         listarUsuarios();
       }
-    };
+    }
 
-    // ⬇️ Função para listar usuários
-    window.listarUsuarios = async () => {
-      const { data, error } = await supabase.from('supabaseteste').select('*');
-
+    // Função para listar
+    async function listarUsuarios() {
       const lista = document.getElementById('listaUsuarios');
-      lista.innerHTML = '';
+      lista.innerHTML = 'Carregando...';
+
+      const { data, error } = await supabase
+        .from('supabaseteste')
+        .select('*');
 
       if (error) {
-        console.error('Erro ao buscar usuários:', error);
-        alert('Erro ao buscar: ' + error.message);
-      } else {
-        data.forEach(user => {
-          const item = document.createElement('li');
-          item.textContent = `${user.nome} - ${user.email}`;
-          lista.appendChild(item);
-        });
+        console.error('Erro ao listar:', error);
+        lista.innerHTML = 'Erro ao carregar lista.';
+        return;
       }
-    };
+
+      lista.innerHTML = '';
+      data.forEach(user => {
+        const li = document.createElement('li');
+        li.textContent = `${user.nome} - ${user.email}`;
+        lista.appendChild(li);
+      });
+    }
+
+    // Espera carregar o DOM
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btnCadastrar').addEventListener('click', cadastrarUsuario);
+      document.getElementById('btnListar').addEventListener('click', listarUsuarios);
+    });
   </script>
 </body>
 </html>

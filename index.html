@@ -19,13 +19,13 @@
     const SUPABASE_URL = "https://idvbwnzcxmbujvfiuaji.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdmJ3bnpjeG1idWp2Zml1YWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MjQ3NTYsImV4cCI6MjA2MzAwMDc1Nn0.iNF6zPgB2ob9s7AHTMy-4OAymr65lo0_qficwoS8SrI";
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function cadastrar() {
       const nome = document.getElementById("nome").value;
       const email = document.getElementById("email").value;
 
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from("supabaseteste")
         .insert([{ nome, email }]);
 
@@ -44,7 +44,7 @@
       const lista = document.getElementById("lista");
       lista.innerHTML = "";
 
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from("supabaseteste")
         .select("*")
         .order("id", { ascending: false });

@@ -5,119 +5,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cadastro Supabase</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
+      text-align: center;
       padding: 2rem;
     }
 
     h1 {
-      font-size: 2.5rem;
-      margin-bottom: 2rem;
-      font-weight: 800;
-    }
-
-    .form-container {
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      width: 100%;
-      max-width: 400px;
+      margin-bottom: 1rem;
     }
 
     input {
-      padding: 0.75rem;
+      padding: 10px;
+      margin: 5px;
       border: none;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      outline: none;
-      color: #000;
+      border-radius: 5px;
+      width: 200px;
     }
 
     button {
-      padding: 0.75rem;
+      padding: 10px 15px;
+      margin: 5px;
       border: none;
-      border-radius: 0.5rem;
-      background: #ff416c;
-      background: linear-gradient(to right, #ff4b2b, #ff416c);
-      color: #fff;
-      font-weight: 600;
+      border-radius: 5px;
+      background-color: #00adb5;
+      color: white;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: background-color 0.3s;
     }
 
     button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+      background-color: #007f83;
     }
 
-    ul#lista {
-      margin-top: 2rem;
+    ul {
       list-style: none;
       padding: 0;
-      width: 100%;
-      max-width: 600px;
+      margin-top: 2rem;
     }
 
-    ul#lista li {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      font-weight: 500;
+    li {
+      background: #393e46;
+      padding: 10px;
+      margin: 10px auto;
+      width: 90%;
+      border-radius: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
     }
 
-    .botoes {
-      display: flex;
-      gap: 0.5rem;
+    .acoes button {
+      margin-left: 5px;
+      background-color: #ff5722;
     }
 
-    .botoes button {
-      background: #1e90ff;
-      padding: 0.5rem 0.75rem;
-      font-size: 0.9rem;
-      border: none;
-      border-radius: 0.4rem;
-      color: white;
-      cursor: pointer;
+    .acoes button:hover {
+      background-color: #e64a19;
     }
 
-    .botoes .excluir {
-      background: #ff4b2b;
+    .editar {
+      background-color: #4caf50;
     }
 
-    .botoes .editar {
-      background: #f0ad4e;
+    .editar:hover {
+      background-color: #388e3c;
     }
   </style>
 </head>
 <body>
+
   <h1>Cadastro Supabase</h1>
 
-  <div class="form-container">
-    <input type="text" id="nome" placeholder="Nome" />
-    <input type="email" id="email" placeholder="Email" />
-    <button onclick="cadastrar()">Cadastrar</button>
-    <button onclick="carregarUsuarios()">Ver Usuários</button>
-  </div>
+  <input type="text" id="nome" placeholder="Nome" />
+  <input type="email" id="email" placeholder="Email" />
+  <button onclick="cadastrar()">Cadastrar</button>
+  <button onclick="carregarUsuarios()">Ver Usuários</button>
 
   <ul id="lista"></ul>
 
@@ -126,25 +92,41 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdmJ3bnpjeG1idWp2Zml1YWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MjQ3NTYsImV4cCI6MjA2MzAwMDc1Nn0.iNF6zPgB2ob9s7AHTMy-4OAymr65lo0_qficwoS8SrI";
     const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    let editandoId = null;
+
     async function cadastrar() {
       const nome = document.getElementById("nome").value;
       const email = document.getElementById("email").value;
 
-      if (!nome || !email) {
-        alert("Preencha todos os campos.");
-        return;
-      }
+      if (editandoId) {
+        const { error } = await client
+          .from("supabaseteste")
+          .update({ nome, email })
+          .eq("id", editandoId);
 
-      const { error } = await client.from("supabaseteste").insert([{ nome, email }]);
-
-      if (error) {
-        console.error("Erro ao cadastrar:", error);
-        alert("Erro ao cadastrar. Veja o console.");
+        if (error) {
+          alert("Erro ao editar. Veja o console.");
+          console.error(error);
+        } else {
+          alert("Usuário editado com sucesso!");
+          editandoId = null;
+          document.querySelector("button[onclick='cadastrar()']").textContent = "Cadastrar";
+          limparCampos();
+          carregarUsuarios();
+        }
       } else {
-        alert("Cadastro realizado!");
-        document.getElementById("nome").value = "";
-        document.getElementById("email").value = "";
-        carregarUsuarios();
+        const { error } = await client
+          .from("supabaseteste")
+          .insert([{ nome, email }]);
+
+        if (error) {
+          alert("Erro ao cadastrar. Veja o console.");
+          console.error(error);
+        } else {
+          alert("Cadastro realizado com sucesso!");
+          limparCampos();
+          carregarUsuarios();
+        }
       }
     }
 
@@ -152,62 +134,59 @@
       const lista = document.getElementById("lista");
       lista.innerHTML = "";
 
-      const { data, error } = await client.from("supabaseteste").select("*").order("id", { ascending: false });
+      const { data, error } = await client
+        .from("supabaseteste")
+        .select("*")
+        .order("id", { ascending: false });
 
       if (error) {
-        console.error("Erro ao carregar:", error);
+        alert("Erro ao carregar usuários.");
+        console.error(error);
         return;
       }
 
       data.forEach(usuario => {
-        const li = document.createElement("li");
-        const nomeSafe = usuario.nome.replace(/'/g, "\\'");
-        const emailSafe = usuario.email.replace(/'/g, "\\'");
-        li.innerHTML = `
+        const item = document.createElement("li");
+        item.innerHTML = `
           <span>${usuario.nome} - ${usuario.email}</span>
-          <div class="botoes">
-            <button class="editar" onclick="editarUsuario(${usuario.id}, '${nomeSafe}', '${emailSafe}')">Editar</button>
-            <button class="excluir" onclick="excluirUsuario(${usuario.id})">Excluir</button>
+          <div class="acoes">
+            <button class="editar" onclick="editarUsuario(${usuario.id}, '${usuario.nome}', '${usuario.email}')">Editar</button>
+            <button onclick="excluirUsuario(${usuario.id})">Excluir</button>
           </div>
         `;
-        lista.appendChild(li);
+        lista.appendChild(item);
       });
     }
 
-    async function excluirUsuario(id) {
-      if (!confirm("Tem certeza que deseja excluir este usuário?")) return;
-
-      const { error } = await client.from("supabaseteste").delete().eq("id", id);
-      if (error) {
-        console.error("Erro ao excluir:", error);
-        alert("Erro ao excluir.");
-      } else {
-        alert("Usuário excluído.");
-        carregarUsuarios();
-      }
+    function editarUsuario(id, nome, email) {
+      document.getElementById("nome").value = nome;
+      document.getElementById("email").value = email;
+      editandoId = id;
+      document.querySelector("button[onclick='cadastrar()']").textContent = "Salvar Edição";
     }
 
-    async function editarUsuario(id, nomeAtual, emailAtual) {
-      const novoNome = prompt("Editar nome:", nomeAtual);
-      const novoEmail = prompt("Editar email:", emailAtual);
-
-      if (!novoNome || !novoEmail) return;
+    async function excluirUsuario(id) {
+      const confirmar = confirm("Deseja realmente excluir este usuário?");
+      if (!confirmar) return;
 
       const { error } = await client
         .from("supabaseteste")
-        .update({ nome: novoNome, email: novoEmail })
+        .delete()
         .eq("id", id);
 
       if (error) {
-        console.error("Erro ao editar:", error);
-        alert("Erro ao editar.");
+        alert("Erro ao excluir. Veja o console.");
+        console.error(error);
       } else {
-        alert("Usuário atualizado.");
+        alert("Usuário excluído com sucesso!");
         carregarUsuarios();
       }
     }
 
-    carregarUsuarios();
+    function limparCampos() {
+      document.getElementById("nome").value = "";
+      document.getElementById("email").value = "";
+    }
   </script>
 </body>
 </html>

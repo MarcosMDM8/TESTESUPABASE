@@ -93,19 +93,44 @@
     const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let editandoId = null;
+    let userId = null;
+
+    async function login() {
+      const { data, error } = await client.auth.signInWithPassword({
+        email: "marcosmoura.info@gmail.com", // coloque o email do seu usuário aqui
+        password: "8068803098marcos"      // e a senha correspondente
+      });
+
+      if (error) {
+        alert("Erro ao fazer login.");
+        console.error(error);
+      } else {
+        userId = data.user.id;
+        console.log("Usuário logado:", userId);
+        carregarUsuarios();
+      }
+    }
+
+    login(); // chama o login automaticamente ao carregar a página
 
     async function cadastrar() {
       const nome = document.getElementById("nome").value;
       const email = document.getElementById("email").value;
 
+      if (!userId) {
+        alert("Usuário não autenticado.");
+        return;
+      }
+
       if (editandoId) {
         const { error } = await client
           .from("supabaseteste")
           .update({ nome, email })
-          .eq("id", editandoId);
+          .eq("id", editandoId)
+          .eq("user_id", userId); // garante que só atualiza o que for do usuário
 
         if (error) {
-          alert("Erro ao editar. Veja o console.");
+          alert("Erro ao editar.");
           console.error(error);
         } else {
           alert("Usuário editado com sucesso!");
@@ -117,10 +142,10 @@
       } else {
         const { error } = await client
           .from("supabaseteste")
-          .insert([{ nome, email }]);
+          .insert([{ nome, email, user_id: userId }]);
 
         if (error) {
-          alert("Erro ao cadastrar. Veja o console.");
+          alert("Erro ao cadastrar.");
           console.error(error);
         } else {
           alert("Cadastro realizado com sucesso!");
@@ -131,12 +156,15 @@
     }
 
     async function carregarUsuarios() {
+      if (!userId) return;
+
       const lista = document.getElementById("lista");
       lista.innerHTML = "";
 
       const { data, error } = await client
         .from("supabaseteste")
         .select("*")
+        .eq("user_id", userId)
         .order("id", { ascending: false });
 
       if (error) {
@@ -172,10 +200,11 @@
       const { error } = await client
         .from("supabaseteste")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", userId); // garante que só exclui o que for do usuário
 
       if (error) {
-        alert("Erro ao excluir. Veja o console.");
+        alert("Erro ao excluir.");
         console.error(error);
       } else {
         alert("Usuário excluído com sucesso!");

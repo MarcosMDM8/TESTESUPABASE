@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cadastro Supabase</title>
+  <title>Login Supabase</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
     body {
@@ -13,209 +13,129 @@
       text-align: center;
       padding: 2rem;
     }
-
-    h1 {
-      margin-bottom: 1rem;
-    }
-
-    input {
+    input, button {
       padding: 10px;
-      margin: 5px;
+      margin: 8px;
       border: none;
       border-radius: 5px;
-      width: 200px;
     }
-
+    input {
+      width: 220px;
+    }
     button {
-      padding: 10px 15px;
-      margin: 5px;
-      border: none;
-      border-radius: 5px;
       background-color: #00adb5;
       color: white;
       cursor: pointer;
-      transition: background-color 0.3s;
     }
-
     button:hover {
       background-color: #007f83;
     }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 2rem;
-    }
-
-    li {
+    #lista li {
       background: #393e46;
+      margin: 8px auto;
       padding: 10px;
-      margin: 10px auto;
       width: 90%;
       border-radius: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-
-    .acoes button {
-      margin-left: 5px;
-      background-color: #ff5722;
-    }
-
-    .acoes button:hover {
-      background-color: #e64a19;
-    }
-
-    .editar {
-      background-color: #4caf50;
-    }
-
-    .editar:hover {
-      background-color: #388e3c;
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-  <h1>Cadastro Supabase</h1>
+  <h1>Login Supabase</h1>
 
-  <input type="text" id="nome" placeholder="Nome" />
-  <input type="email" id="email" placeholder="Email" />
-  <button onclick="cadastrar()">Cadastrar</button>
-  <button onclick="carregarUsuarios()">Ver Usuários</button>
+  <div id="auth">
+    <input type="email" id="email" placeholder="Email" /><br />
+    <input type="password" id="senha" placeholder="Senha" /><br />
+    <button onclick="login()">Entrar</button>
+    <button onclick="signup()">Cadastrar</button>
+  </div>
 
-  <ul id="lista"></ul>
+  <div id="painel" class="hidden">
+    <h2>Bem-vindo! 👋</h2>
+    <input type="text" id="nome" placeholder="Seu Nome" />
+    <button onclick="salvar()">Salvar Nome</button>
+    <button onclick="logout()">Sair</button>
+
+    <ul id="lista"></ul>
+  </div>
 
   <script>
     const SUPABASE_URL = "https://idvbwnzcxmbujvfiuaji.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdmJ3bnpjeG1idWp2Zml1YWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MjQ3NTYsImV4cCI6MjA2MzAwMDc1Nn0.iNF6zPgB2ob9s7AHTMy-4OAymr65lo0_qficwoS8SrI";
-    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let editandoId = null;
-    let userId = null;
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function login() {
-      const { data, error } = await client.auth.signInWithPassword({
-        email: "", // coloque o email do seu usuário aqui
-        password: ""      // e a senha correspondente
-      });
-
-      if (error) {
-        alert("Erro ao fazer login.");
-        console.error(error);
-      } else {
-        userId = data.user.id;
-        console.log("Usuário logado:", userId);
-        carregarUsuarios();
-      }
-    }
-
-    login(); // chama o login automaticamente ao carregar a página
-
-    async function cadastrar() {
-      const nome = document.getElementById("nome").value;
       const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
 
-      if (!userId) {
-        alert("Usuário não autenticado.");
-        return;
-      }
+      const { error, session } = await supabase.auth.signInWithPassword({ email, password: senha });
 
-      if (editandoId) {
-        const { error } = await client
-          .from("supabaseteste")
-          .update({ nome, email })
-          .eq("id", editandoId)
-          .eq("user_id", userId); // garante que só atualiza o que for do usuário
-
-        if (error) {
-          alert("Erro ao editar.");
-          console.error(error);
-        } else {
-          alert("Usuário editado com sucesso!");
-          editandoId = null;
-          document.querySelector("button[onclick='cadastrar()']").textContent = "Cadastrar";
-          limparCampos();
-          carregarUsuarios();
-        }
-      } else {
-        const { error } = await client
-          .from("supabaseteste")
-          .insert([{ nome, email, user_id: userId }]);
-
-        if (error) {
-          alert("Erro ao cadastrar.");
-          console.error(error);
-        } else {
-          alert("Cadastro realizado com sucesso!");
-          limparCampos();
-          carregarUsuarios();
-        }
-      }
+      if (error) return alert("Erro no login: " + error.message);
+      alert("Login realizado com sucesso!");
+      mostrarPainel();
     }
 
-    async function carregarUsuarios() {
-      if (!userId) return;
+    async function signup() {
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
+
+      const { data, error } = await supabase.auth.signUp({ email, password: senha });
+
+      if (error) return alert("Erro no cadastro: " + error.message);
+      alert("Cadastro realizado! Agora faça login.");
+    }
+
+    async function salvar() {
+      const user = await supabase.auth.getUser();
+      const email = user.data.user.email;
+      const nome = document.getElementById("nome").value;
+
+      const { error } = await supabase.from("supabaseteste").insert([{ nome, email }]);
+
+      if (error) return alert("Erro ao salvar: " + error.message);
+      alert("Salvo com sucesso!");
+      carregarLista();
+    }
+
+    async function carregarLista() {
+      const { data, error } = await supabase
+        .from("supabaseteste")
+        .select("*")
+        .order("id", { ascending: false });
+
+      if (error) return console.error(error);
 
       const lista = document.getElementById("lista");
       lista.innerHTML = "";
-
-      const { data, error } = await client
-        .from("supabaseteste")
-        .select("*")
-        .eq("user_id", userId)
-        .order("id", { ascending: false });
-
-      if (error) {
-        alert("Erro ao carregar usuários.");
-        console.error(error);
-        return;
-      }
-
-      data.forEach(usuario => {
-        const item = document.createElement("li");
-        item.innerHTML = `
-          <span>${usuario.nome} - ${usuario.email}</span>
-          <div class="acoes">
-            <button class="editar" onclick="editarUsuario(${usuario.id}, '${usuario.nome}', '${usuario.email}')">Editar</button>
-            <button onclick="excluirUsuario(${usuario.id})">Excluir</button>
-          </div>
-        `;
-        lista.appendChild(item);
+      data.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = `${item.nome} - ${item.email}`;
+        lista.appendChild(li);
       });
     }
 
-    function editarUsuario(id, nome, email) {
-      document.getElementById("nome").value = nome;
-      document.getElementById("email").value = email;
-      editandoId = id;
-      document.querySelector("button[onclick='cadastrar()']").textContent = "Salvar Edição";
+    async function logout() {
+      await supabase.auth.signOut();
+      document.getElementById("auth").classList.remove("hidden");
+      document.getElementById("painel").classList.add("hidden");
     }
 
-    async function excluirUsuario(id) {
-      const confirmar = confirm("Deseja realmente excluir este usuário?");
-      if (!confirmar) return;
-
-      const { error } = await client
-        .from("supabaseteste")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", userId); // garante que só exclui o que for do usuário
-
-      if (error) {
-        alert("Erro ao excluir.");
-        console.error(error);
-      } else {
-        alert("Usuário excluído com sucesso!");
-        carregarUsuarios();
-      }
+    async function mostrarPainel() {
+      document.getElementById("auth").classList.add("hidden");
+      document.getElementById("painel").classList.remove("hidden");
+      carregarLista();
     }
 
-    function limparCampos() {
-      document.getElementById("nome").value = "";
-      document.getElementById("email").value = "";
-    }
+    // Verifica se está logado
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) mostrarPainel();
+    });
   </script>
 </body>
 </html>
